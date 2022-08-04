@@ -1,8 +1,22 @@
-FROM tomcat:8.0-alpine
+FROM ubuntu
+RUN apt-get update -y && apt-get install wget -y && apt-get install curl -y && apt-get install fontconfig -y
 
+RUN wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u282-b08/OpenJDK8U-jdk_x64_linux_hotspot_8u282b08.tar.gz
+RUN tar -zxvf OpenJDK8U-jdk_x64_linux_hotspot_8u282b08.tar.gz
+RUN rm -rf OpenJDK8U-jdk_x64_linux_hotspot_8u282b08.tar.gz
+RUN mv jdk8u282-b08 java8
 
-ADD /target/petclinic.war /usr/local/tomcat/webapps/
+RUN sed -i '$a export JAVA_HOME=/home/ec2-user/java8' /etc/profile && sed -i '$a export PATH=$PATH:/home/ec2-user/java8/bin' /etc/profile
 
-EXPOSE 8080
+RUN apt-get install vim -y
+RUN apt-get install maven -y
 
-CMD ["catalina.sh", "run"]
+RUN wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.65/bin/apache-tomcat-9.0.65.tar.gz
+RUN tar -zxvf apache-tomcat-9.0.65.tar.gz
+RUN mv apache-tomcat-9.0.65 tomcat
+RUN rm -rf apache-tomcat-9.0.65.tar.gz
+
+WORKDIR /home/ec2-user/tomcat/webapps
+COPY /target/petclinic.war /home/ec2-user/tomcat/webapps
+
+CMD ["/home/ec2-user/tomcat/bin/catalina.sh", "run"]
